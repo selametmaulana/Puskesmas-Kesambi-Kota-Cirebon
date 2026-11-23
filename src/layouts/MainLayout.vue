@@ -1,14 +1,83 @@
-<script setup>
-import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { LayoutDashboard, Users, ClipboardList, UserRoundCheck, Newspaper, CalendarDays, FileBarChart2, Settings, Menu, Bell, HeartPulse, X, Activity, LogOut, ShieldCheck } from 'lucide-vue-next'
-import { getSession, logoutSuperAdmin } from '../store/auth'
 
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+import {
+  LayoutDashboard,
+  Users,
+  ClipboardList,
+  UserRoundCheck,
+  Newspaper,
+  CalendarDays,
+  FileBarChart2,
+  Settings,
+  Menu,
+  Bell,
+  HeartPulse,
+  X,
+  Activity,
+  LogOut,
+  ShieldCheck
+} from 'lucide-vue-next'
+
+import {
+  getCurrentSuperAdmin,
+  logoutSuperAdmin
+} from '../store/auth'
+
+// Router
 const route = useRoute()
 const router = useRouter()
+
+// State
 const open = ref(false)
-const user = getSession()
-const initials = computed(() => (user?.name || 'SA').split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase())
+const user = ref(null)
+const loggingOut = ref(false)
+
+// Ambil data Super Admin dari Supabase
+async function loadAdminProfile() {
+  try {
+    const admin = await getCurrentSuperAdmin()
+
+    if (admin) {
+      user.value = {
+        id: admin.id,
+        name: admin.nama_lengkap,
+        email: admin.email,
+        role: admin.role,
+        status: admin.status
+      }
+    } else {
+      user.value = null
+      await router.replace({ name: 'login' })
+    }
+
+  } catch (error) {
+    console.error('Gagal mengambil profil admin:', error)
+    user.value = null
+  }
+}
+
+// Jalankan saat halaman dashboard dibuka
+onMounted(() => {
+  loadAdminProfile()
+})
+
+// Inisial nama Super Admin
+const initials = computed(() => {
+  const name = user.value?.name || 'Super Admin'
+
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+})
+
+// Menu sidebar dashboard
 const items = [
   ['/', 'Dashboard', LayoutDashboard],
   ['/pasien', 'Data Pasien', Users],
@@ -20,12 +89,36 @@ const items = [
   ['/laporan', 'Laporan', FileBarChart2],
   ['/pengaturan', 'Pengaturan', Settings]
 ]
-const title = computed(() => route.meta.title || 'Dashboard')
-function signOut() {
-  logoutSuperAdmin()
-  router.replace({ name: 'login' })
+
+// Judul halaman
+const title = computed(() => {
+  return route.meta.title || 'Dashboard'
+})
+
+// Logout menggunakan Supabase
+async function signOut() {
+  if (loggingOut.value) return
+
+  loggingOut.value = true
+
+  try {
+    await logoutSuperAdmin()
+
+    user.value = null
+
+    await router.replace({
+      name: 'login'
+    })
+
+  } catch (error) {
+    console.error('Gagal logout:', error)
+    alert('Gagal keluar dari akun. Silakan coba lagi.')
+  } finally {
+    loggingOut.value = false
+  }
 }
 </script>
+
 
 <template>
   <div class="app-shell">

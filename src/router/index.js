@@ -1,11 +1,17 @@
-import { createRouter, createWebHistory } from 'vue-router'
+
+import {
+  createRouter,
+  createWebHistory
+} from 'vue-router'
+
 import MainLayout from '../layouts/MainLayout.vue'
 import AuthLayout from '../layouts/AuthLayout.vue'
+
 import Dashboard from '../views/Dashboard.vue'
 import DataTablePage from '../views/DataTablePage.vue'
 import Login from '../views/Login.vue'
-import Register from '../views/Register.vue'
-import { isAuthenticated, hasRegisteredSuperAdmin } from '../store/auth'
+
+import { getCurrentSuperAdmin } from '../store/auth'
 
 const sections = [
   ['pasien', 'Data Pasien'],
@@ -20,44 +26,103 @@ const sections = [
 
 const router = createRouter({
   history: createWebHistory(),
+
   routes: [
+    // DASHBOARD ADMIN
     {
       path: '/',
       component: MainLayout,
       meta: { requiresAuth: true },
+
       children: [
-        { path: '', name: 'dashboard', component: Dashboard, meta: { title: 'Dashboard' } },
+        {
+          path: '',
+          name: 'dashboard',
+          component: Dashboard,
+          meta: { title: 'Dashboard' }
+        },
+
         ...sections.map(([path, title]) => ({
-          path, name: path, component: DataTablePage,
-          props: { section: path, title }, meta: { title }
+          path,
+          name: path,
+          component: DataTablePage,
+          props: { section: path, title },
+          meta: { title }
         }))
       ]
     },
+
+    // LOGIN SUPER ADMIN
     {
-      path: '/auth',
-      redirect: '/login',
+      path: '/login',
       component: AuthLayout,
       meta: { guestOnly: true },
+
       children: [
-        { path: '/login', name: 'login', component: Login },
-        { path: '/register', name: 'register', component: Register }
+        {
+          path: '',
+          name: 'login',
+          component: Login
+        }
       ]
     },
-    { path: '/:pathMatch(.*)*', redirect: '/' }
+
+    // REDIRECT AUTH
+    {
+      path: '/auth',
+      redirect: '/login'
+    },
+
+    // DISABLE REGISTER PUBLIK
+    {
+      path: '/register',
+      redirect: '/login'
+    },
+
+    // HALAMAN TIDAK DITEMUKAN
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/'
+    }
   ]
 })
 
-router.beforeEach(to => {
-  const loggedIn = isAuthenticated()
-  if (to.matched.some(record => record.meta.requiresAuth) && !loggedIn) {
-    return { name: 'login', query: { redirect: to.fullPath } }
+// SUPABASE AUTHENTICATION GUARD
+router.beforeEach(async (to) => {
+  const requiresAuth = to.matched.some(
+    record => record.meta.requiresAuth
+  )
+
+  const guestOnly = to.matched.some(
+    record => record.meta.guestOnly
+  )
+
+  if (!requiresAuth && !guestOnly) {
+    return true
   }
-  if (to.matched.some(record => record.meta.guestOnly) && loggedIn) {
+
+  let admin = null
+
+  try {
+    admin = await getCurrentSuperAdmin()
+  } catch (error) {
+    console.error('Gagal memeriksa sesi admin:', error)
+  }
+
+  // Belum login, arahkan ke halaman login
+  if (requiresAuth && !admin) {
+    return {
+      name: 'login',
+      query: { redirect: to.fullPath }
+    }
+  }
+
+  // Sudah login, tidak perlu kembali ke login
+  if (guestOnly && admin) {
     return { name: 'dashboard' }
   }
-  if (to.name === 'register' && hasRegisteredSuperAdmin()) {
-    return { name: 'login' }
-  }
+
+  return true
 })
 
 export default router
