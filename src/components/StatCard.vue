@@ -1,0 +1,2 @@
+<script setup>defineProps({title:String,value:String,change:String,icon:Object,tone:String})</script>
+<template><div class="stat-card" :class="tone"><div class="stat-top"><span class="stat-icon"><component :is="icon" :size="25"/></span><span class="stat-arrow">↗</span></div><p>{{title}}</p><h2>{{value}}</h2><small><b>{{change}}</b> <span>dibanding periode sebelumnya</span></small></div></template>
