@@ -1,35 +1,52 @@
+
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, CheckCircle2, Info } from 'lucide-vue-next'
-import { hasRegisteredSuperAdmin, loginSuperAdmin } from '../store/auth'
+import {
+  ArrowRight, Eye, EyeOff,
+  LockKeyhole, Mail, ShieldCheck, Info
+} from 'lucide-vue-next'
+
+import { loginSuperAdmin } from '../store/auth'
 
 const router = useRouter()
 const route = useRoute()
-const email = ref(typeof route.query.email === 'string' ? route.query.email : '')
+
+const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const busy = ref(false)
 const error = ref('')
-const accountExists = hasRegisteredSuperAdmin()
-const created = computed(() => route.query.created === '1')
 
 async function submitLogin() {
   if (busy.value) return
+
   error.value = ''
   busy.value = true
+
   try {
-    await loginSuperAdmin({ email: email.value, password: password.value })
-    const target = typeof route.query.redirect === 'string' && /^\/(?!\/)/.test(route.query.redirect)
-      ? route.query.redirect : '/'
+    await loginSuperAdmin({
+      email: email.value,
+      password: password.value
+    })
+
+    const target =
+      typeof route.query.redirect === 'string' &&
+      /^\/(?!\/)/.test(route.query.redirect)
+        ? route.query.redirect
+        : '/'
+
     await router.replace(target)
+
   } catch (exception) {
-    error.value = exception.message || 'Tidak dapat masuk. Silakan coba lagi.'
+    error.value =
+      exception.message || 'Login gagal. Silakan coba lagi.'
   } finally {
     busy.value = false
   }
 }
 </script>
+
 
 <template>
   <div class="auth-form-card">
