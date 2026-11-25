@@ -1,0 +1,26 @@
+-- LANGKAH TERAKHIR: jalankan setelah konfigurasi Meta dan Edge Function benar.
+-- Pastikan extension pg_cron dan pg_net aktif (Supabase > Database > Extensions).
+-- Perintah SEBELUM bagian ini, jalankan MANUAL di SQL Editor, mengganti placeholder:
+-- select vault.create_secret('https://PROJECT_REF.supabase.co', 'kesambi_project_url');
+-- select vault.create_secret('sb_secret_... dari API Keys (default)', 'kesambi_cron_secret');
+-- Jangan commit nilai secret ke repository.
+
+-- DISABLED DEFAULT: Hapus awalan -- dari blok di bawah SETELAH Vault siap.
+-- select cron.schedule(
+--   'kesambi-kirim-pengingat-obat',
+--   '* * * * *', -- setiap 1 menit, jadwal UTC tersimpan sebagai timestamptz
+--   $$
+--     select net.http_post(
+--       url := (select decrypted_secret from vault.decrypted_secrets where name='kesambi_project_url') || '/functions/v1/kirim-pengingat-obat',
+--       headers := jsonb_build_object(
+--         'Content-Type','application/json',
+--         'apikey',(select decrypted_secret from vault.decrypted_secrets where name='kesambi_cron_secret')
+--       ),
+--       body := '{}'::jsonb,
+--       timeout_milliseconds := 20000
+--     );
+--   $$
+-- );
+
+-- Verifikasi: select jobid,jobname,schedule,active from cron.job where jobname='kesambi-kirim-pengingat-obat';
+-- Berhenti: select cron.unschedule('kesambi-kirim-pengingat-obat');

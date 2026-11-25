@@ -1,0 +1,9 @@
+# Function pengirim: meskipun verify_jwt=false, @supabase/server
+# menolak request tanpa SUPABASE SECRET API KEY di header apikey.
+[functions.kirim-pengingat-obat]
+verify_jwt = false
+
+# Webhook menerima request Meta tanpa JWT Supabase;
+# POST WAJIB diverifikasi HMAC-SHA256 terhadap WA_META_APP_SECRET.
+[functions.wa-status-webhook]
+verify_jwt = false
