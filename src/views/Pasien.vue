@@ -1,14 +1,38 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import {
-  Users, Search, Plus, Pencil, Trash2, RefreshCw,
-  X, Info, AlertCircle, CheckCircle2, Download, CalendarDays,
-  MessageCircle, Clock3, Send, Ban
+  Users, 
+  Search, 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  RefreshCw,
+  X, 
+  Info,
+  AlertCircle, 
+  CheckCircle2, 
+  Download, 
+  CalendarDays,
+  MessageCircle, 
+  Clock3, 
+  Send, 
+  Ban
 } from 'lucide-vue-next'
 import {
-  listPasien, createPasien, updatePasien, deletePasien
+  listPasien, 
+  createPasien, 
+  updatePasien, 
+  deletePasien
 } from '../services/pasienService'
-import { listPengingat, tambahPengingat, batalkanPengingat, konfirmasiKirimManual, catatBukaChatWA, ubahStatusPengambilan } from '../services/pengingatService'
+import { 
+  listPengingat, 
+  tambahPengingat, 
+  batalkanPengingat, 
+  konfirmasiKirimManual, 
+  catatBukaChatWA, 
+  ubahStatusPengambilan,
+  deletePengingat
+} from '../services/pengingatService'
 import '../assets/pasien.css'
 
 const layananOptions = ['Umum', 'KIA', 'Imunisasi', 'Gigi', 'Gizi', 'CKG', 'Lainnya']
@@ -254,6 +278,36 @@ async function cancelReminder(reminder) {
   } catch (e) {
     pageError.value = readableError(e)
   } finally { busyReminderId.value = null }
+}
+
+// TAMBAHKAN FUNGSI HAPUS DI SINI
+async function hapusPengingat(reminder) {
+  if (busyReminderId.value) return
+
+  const konfirmasi = window.confirm(
+    'Yakin ingin menghapus jadwal pengingat obat beserta riwayat terkaitnya? Tindakan ini tidak dapat dibatalkan.'
+  )
+
+  if (!konfirmasi) return
+
+  busyReminderId.value = reminder.id
+  pageError.value = ''
+  success.value = ''
+
+  try {
+    await deletePengingat(reminder.id)
+
+    success.value = 'Data pengingat obat berhasil dihapus.'
+
+    await refreshReminders()
+
+  } catch (error) {
+    pageError.value = 'Gagal menghapus pengingat: ' +
+      readableError(error)
+
+  } finally {
+    busyReminderId.value = null
+  }
 }
 
 
@@ -718,7 +772,7 @@ onMounted(refresh)
       <div class="modal-actions">
         <button type="button" class="secondary-button" :disabled="!!busyReminderId" @click="confirmReminder=null">Batal</button>
         <button type="submit" class="primary-button" :disabled="!confirmChecked || !!busyReminderId">
-          {{ busyReminderId ? 'Menyimpan...' : 'Simpan Konfirmasi ke Supabase' }}
+          {{ busyReminderId ? 'Menyimpan...' : 'Simpan Konfirmasi ke Database' }}
         </button>
       </div>
     </form>

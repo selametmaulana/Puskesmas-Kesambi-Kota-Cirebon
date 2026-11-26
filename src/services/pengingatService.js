@@ -45,3 +45,16 @@ export async function ubahStatusPengambilan(id, status, catatan) {
   if (error) throw error
   if (!data) throw new Error('Status tidak berubah; mungkin sudah diperbarui petugas lain. Muat ulang data.')
 }
+
+export async function deletePengingat(id) {
+  const { data, error } = await supabase
+    .from('pengingat_obat')
+    .delete()
+    .eq('id', id)
+    .select('id')
+    .single()
+
+  if (error) throw error
+
+  return data
+}
