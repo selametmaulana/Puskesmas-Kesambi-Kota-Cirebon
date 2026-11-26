@@ -445,8 +445,8 @@ onMounted(refresh)
 
 <template>
   <div class="patient-page">
-    <div class="patient-disclaimer"><Info :size="17" />
-      Data tersimpan di database. Gunakan data fiktif untuk uji coba; jangan mengirimkan informasi obat, diagnosis, atau rekam medis melalui WhatsApp.
+    <div class="patient-disclaimer"><Info :size="18" />
+      Data tersimpan di database.
     </div>
 
     <div class="page-heading">

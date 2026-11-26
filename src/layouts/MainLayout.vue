@@ -81,12 +81,12 @@ const initials = computed(() => {
 const items = [
   ['/', 'Dashboard', LayoutDashboard],
   ['/pasien', 'Data Pasien', Users],
-  ['/pelayanan', 'Data Pelayanan', ClipboardList],
-  ['/pegawai', 'Data Pegawai', UserRoundCheck],
-  ['/artikel', 'Artikel Kesehatan', Newspaper],
-  ['/kegiatan', 'Berita & Kegiatan', Activity],
-  ['/jadwal', 'Jadwal Pelayanan', CalendarDays],
-  ['/laporan', 'Laporan', FileBarChart2],
+  // ['/pelayanan', 'Data Pelayanan', ClipboardList],
+  // ['/pegawai', 'Data Pegawai', UserRoundCheck],
+  // ['/artikel', 'Artikel Kesehatan', Newspaper],
+  // ['/kegiatan', 'Berita & Kegiatan', Activity],
+  // ['/jadwal', 'Jadwal Pelayanan', CalendarDays],
+  // ['/laporan', 'Laporan', FileBarChart2],
   ['/pengaturan', 'Pengaturan', Settings]
 ]
 
